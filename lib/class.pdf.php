@@ -579,12 +579,22 @@ class Cpdf {
 
     case 'out':
       if (count($o['info']['pages'])) {
-        $res = "\n$id 0 obj\n<< /Type /Pages\n/Kids [";
+
+        $res = "\n$id 0 obj\n<< /Type /Pages";
+        if (isset($o['info']['parent'])) {
+          $res.= "\n/Parent ".$o['info']['parent']." 0 R";
+        }
+
+        $res .= "\n/Kids [";
         foreach ($o['info']['pages'] as $v) {
           $res.= "$v 0 R\n";
         }
 
-        $res.= "]\n/Count ".count($this->objects[$id]['info']['pages']);
+        if (isset($o['info']['page_count'])) {
+          $res.= "]\n/Count ".$o['info']['page_count'];
+        } else {
+          $res.= "]\n/Count ".count($this->objects[$id]['info']['pages']);
+        }
 
         if ( (isset($o['info']['fonts']) && count($o['info']['fonts'])) ||
               isset($o['info']['procset']) ||
