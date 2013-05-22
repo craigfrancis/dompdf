@@ -56,6 +56,7 @@ class dompdf_pages {
 			$this->output_fonts = array();
 			$this->output_font_info = array();
 			$this->output_font_id = 0;
+			$this->output_image_info = array();
 			$this->output_image_id = 0;
 			$this->output_info_id = NULL;
 
@@ -183,6 +184,42 @@ class dompdf_pages {
 
 	}
 
+	private function _combine_image_add($k, $old_label) {
+
+		//--------------------------------------------------
+		// Image hash
+
+			$hash = md5($this->current_objects[$k]['data']);
+
+		//--------------------------------------------------
+		// Get image number, or add.
+
+			if (isset($this->output_image_info[$hash])) {
+
+				$label = $this->output_image_info[$hash]['label'];
+
+			} else {
+
+				$label = (++$this->output_image_id);
+
+				$new_id = $this->_combine_object_add($k);
+
+				$this->output_image_info[$hash] = array(
+						'objNum' => $new_id,
+						'label' => $label,
+					);
+
+			}
+
+			$this->current_image_map[$old_label] = $label;
+
+		//--------------------------------------------------
+		// Return
+
+			return $this->output_image_info[$hash];
+
+	}
+
 	private function _combine_font_update($match) {
 		return $match[1] . $this->current_font_map[$match[2]] . $match[3];
 	}
@@ -236,15 +273,7 @@ class dompdf_pages {
 				if (isset($o['info']['xObjects'])) {
 					$new_objects = array();
 					foreach ($o['info']['xObjects'] as $object) {
-
-						$label = (++$this->output_image_id);
-						$this->current_image_map[$object['label']] = $label;
-
-						$object['objNum'] = $this->_combine_object_add($object['objNum']);
-						$object['label'] = $label;
-
-						$new_objects[] = $object;
-
+						$new_objects[] = $this->_combine_image_add($object['objNum'], $object['label']);
 					}
 					$o['info']['xObjects'] = $new_objects;
 				}
